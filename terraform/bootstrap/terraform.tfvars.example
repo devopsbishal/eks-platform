@@ -1,0 +1,4 @@
+aws_profile="your_aws_profile_name"
+aws_region="us-east-1"
+s3_bucket_name="your_unique_s3_bucket_name"
+subscriber_email="your_email@example.com"
