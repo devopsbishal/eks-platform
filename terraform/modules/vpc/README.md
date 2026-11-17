@@ -82,7 +82,11 @@ chart's images) must have an `arm64` or multi-arch build.
 ## NAT strategy
 
 **One NAT gateway, in the use1-az1 public subnet**, shared by all three private subnets. The
-wrapper exposes this as one choice (`single` or `per_az`).
+wrapper exposes this as two booleans, `single_nat_gateway` (default) and `one_nat_gateway_per_az`,
+and validation requires exactly one of them to be true. Both `false` would leave the private
+subnets with no route out; both `true` would let the upstream module silently pick `single`.
+The single NAT goes in the first AZ of `availability_zone_ids`, so that list's order decides
+where it lives.
 
 | Option | $/hour | $/month (730 h) | When the NAT's AZ fails |
 |---|---|---|---|
@@ -90,7 +94,8 @@ wrapper exposes this as one choice (`single` or `per_az`).
 | per_az | $0.135 | $98.55 | only that AZ loses egress |
 | regional | $0.045 per AZ | — | not supported by the module (v6.7.3) |
 
-Plus $0.045 per GB processed, in every option.
+Plus $0.045 per GB processed, in every option, and $0.005/hour for each NAT gateway's Elastic
+IP (public IPv4): $0.05/hour in total for `single`.
 
 - **Cost note:** one NAT left up for a whole month costs more than the $30 budget on its own.
   The cluster is destroyed after each session.
@@ -101,5 +106,5 @@ Plus $0.045 per GB processed, in every option.
   until the NAT is moved to a surviving AZ with one `apply` (minutes).
 - **Keeps the cluster up through that failure:** EKS private endpoint access, so nodes reach the API
   server inside the VPC instead of through the NAT (set in the EKS module).
-- **S3 gateway endpoint (free):** ECR serves image layers from S3, so image pulls skip the NAT and
-  its per-GB charge.
+- **S3 gateway endpoint (free, not built yet):** ECR serves image layers from S3, so image pulls
+  skip the NAT and its per-GB charge.

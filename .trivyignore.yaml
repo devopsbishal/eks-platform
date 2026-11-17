@@ -1,0 +1,13 @@
+# Suppressions for trivy plan scans. A plan JSON has no comments, so inline
+# #trivy:ignore lines don't reach it. Not loaded automatically (experimental):
+#   trivy config --ignorefile .trivyignore.yaml tfplan.json
+
+misconfigurations:
+  - id: AVD-AWS-0178
+    statement: >-
+      Accepted risk: no VPC flow logs, so nothing records which connections were
+      accepted or rejected, and a blocked security group rule or unexpected egress
+      can't be traced afterwards. The VPC is destroyed after each session and
+      carries no traffic but mine. Enable flow logs (standalone flow-log module)
+      before anyone else's traffic reaches it. Reason in full:
+      terraform/modules/vpc/main.tf.

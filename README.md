@@ -11,7 +11,7 @@ Built in stages. Each stage ends in something that runs.
 | Stage | What | Status |
 |---|---|---|
 | Bootstrap | S3 state bucket, AWS Budget alert | Done |
-| Network and cluster | VPC and EKS through thin wrapper modules, managed node group, access entries | Next |
+| Network and cluster | VPC and EKS through thin wrapper modules, managed node group, access entries | In progress (VPC) |
 | Delivery | Argo CD app-of-apps; GitHub Actions builds, scans (Trivy) and pushes to ECR over OIDC | Planned |
 | Observability | kube-prometheus-stack, an SLO with multi-window burn-rate alerts, one dashboard | Planned |
 | Security | EKS Pod Identity for workloads | Planned |
@@ -26,7 +26,9 @@ it is up.
 
 ```
 terraform/
-  bootstrap/   state bucket and budget; applied once per account
+  bootstrap/      state bucket and budget; applied once per account
+  modules/vpc/    VPC wrapper: CIDR plan, AZ IDs, NAT strategy (see its README)
+  envs/dev/       the dev root: calls the modules, state in S3 at envs/dev/
 ```
 
 ## Bootstrap
@@ -48,7 +50,8 @@ and is migrated into that bucket afterwards.
 - Providers and modules pinned; `.terraform.lock.hcl` committed.
 - Every resource tagged `environment`, `owner`, `cost-center`, `project`.
 - No static AWS keys in CI: GitHub OIDC with the trust policy pinned to this repo and branch.
-- `checkov` and `trivy config` run over `terraform/`. Every finding is fixed or suppressed with a
-  written reason next to the suppression.
+- `checkov` and `trivy config` run over `terraform/` and over the plan JSON. Every finding is fixed
+  or suppressed with a written reason next to the suppression; plan-scan suppressions live in
+  `.trivyignore.yaml`.
 - No state, plans, real `.tfvars`, kubeconfigs, account IDs or secrets in the repo. Commits are
   scanned with gitleaks.
