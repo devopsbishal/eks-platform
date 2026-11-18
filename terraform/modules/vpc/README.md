@@ -106,5 +106,6 @@ IP (public IPv4): $0.05/hour in total for `single`.
   until the NAT is moved to a surviving AZ with one `apply` (minutes).
 - **Keeps the cluster up through that failure:** EKS private endpoint access, so nodes reach the API
   server inside the VPC instead of through the NAT (set in the EKS module).
-- **S3 gateway endpoint (free, not built yet):** ECR serves image layers from S3, so image pulls
-  skip the NAT and its per-GB charge.
+- **S3 gateway endpoint (free):** ECR serves image layers from S3, so image pulls
+  skip the NAT and its per-GB charge. Attached to the private route tables only; there is no
+  endpoint policy, so it allows the same S3 access the NAT path does.

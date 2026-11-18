@@ -43,3 +43,22 @@ module "vpc" {
     "kubernetes.io/role/elb" = 1
   }
 }
+
+# S3 gateway endpoint: free, unlike interface endpoints. ECR serves image layers
+# from S3, so without it every node image pull goes through the NAT and is billed
+# per GB. Private route tables only: the nodes are in the private subnets, and the
+# public subnets reach S3 through the internet gateway, which has no per-GB charge.
+# No endpoint policy, so all of S3 is reachable, the same access the NAT gives.
+module "vpc_endpoints" {
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-vpc.git//modules/vpc-endpoints?ref=b3abd6df2ecf052451a361ed55b8f06f8742a795" # v6.7.3
+
+  vpc_id = module.vpc.vpc_id
+
+  endpoints = {
+    s3 = {
+      service         = "s3"
+      service_type    = "Gateway"
+      route_table_ids = module.vpc.private_route_table_ids
+    }
+  }
+}
